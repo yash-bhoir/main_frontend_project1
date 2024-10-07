@@ -16,8 +16,8 @@ const Unauthorized: React.FC = () => {
     }, 3000);
 
     return () => {
-      clearInterval(timer); // Clear the interval if the component is unmounted
-      clearTimeout(timeout); // Clear the timeout if the component is unmounted
+      clearInterval(timer); 
+      clearTimeout(timeout);
     };
   }, [navigate]);
 

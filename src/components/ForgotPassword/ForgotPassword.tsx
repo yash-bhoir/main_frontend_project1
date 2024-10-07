@@ -12,14 +12,13 @@ import { Button } from "../ui/button";
 import Spinner from "../ui/spinner";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
-import MainResetPasswordPage from "./mainRestPasswordPage";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState<string>("");
   const [otpSent, setOtpSent] = useState<boolean>(false);
   const [otp, setOtp] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const [userId, setUserId] = useState<string | null>(null); 
+  // const [userId, setUserId] = useState<string | null>(null); 
   const navigate = useNavigate(); 
 
   const handleSendOtp = async (e: React.FormEvent) => {
@@ -40,7 +39,6 @@ const ForgotPassword = () => {
       const data = await response.json();
       toast.success(data.message);
       setOtpSent(true);
-      setUserId(data.userId); 
     } catch (error) {
       const errorMessage = (error as Error).message || "Error sending OTP";
       toast.error(errorMessage);
@@ -70,16 +68,19 @@ const ForgotPassword = () => {
       if (!response.ok) throw new Error("Invalid OTP");
   
       const data = await response.json();
+      const receivedUserId = data.data.id; // Extract the userId from the response
       toast.success(data.message);
   
-      // Pass userId in state to the navigate function
-      navigate("/resetPassword", { state: { userId: data.userId } });
+      console.log("validate otp response ::", receivedUserId);
+      // setUserId(receivedUserId); // Set the userId state
+  
+      // Directly navigate using the userId
+      navigate("/resetPassword", { state: { userId: receivedUserId } });
     } catch (error) {
       const errorMessage = (error as Error).message || "Error validating OTP";
       toast.error(errorMessage);
     }
-  };
-  
+  };  
 
   return (
     <Card className="mx-auto max-w-sm">
@@ -150,7 +151,6 @@ const ForgotPassword = () => {
               </div>
             </>
           )}
-          {otpSent && userId && <MainResetPasswordPage userId={userId} />}
         </div>
       </CardContent>
     </Card>

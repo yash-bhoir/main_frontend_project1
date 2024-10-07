@@ -49,7 +49,7 @@ const SignIn: React.FC = () => {
           sameSite: "Strict",
         });
 
-        navigate("/home");
+        navigate("/");
       } else {
         const errorData = await response.json();
         setError(errorData.message || "An unexpected error occurred. Please try again.");
@@ -76,7 +76,6 @@ const SignIn: React.FC = () => {
       <CardContent>
         {error && <div className="text-red-500 text-center">{error}</div>}
         <form className="space-y-4" onSubmit={handleSubmit}>
-          {/* Email Input */}
           <div className="space-y-2">
             <Label htmlFor="identifier">Email or Username</Label>
             <Input
@@ -89,7 +88,6 @@ const SignIn: React.FC = () => {
             />
           </div>
 
-          {/* Password Input */}
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
@@ -102,25 +100,21 @@ const SignIn: React.FC = () => {
             />
           </div>
 
-          {/* Login Button */}
           <Button type="submit" className="w-full">
             Login
           </Button>
 
-          {/* Forgot Password Link */}
           <div className="text-sm text-blue-600 hover:underline text-center mt-2">
             <Link to="/forgotPassword" className="text-blue-600 hover:underline">
               Forgot Password?
             </Link>
           </div>
 
-          {/* Sign in with Google Button */}
           <Button className="w-full bg-white border border-gray-300 text-gray-700 flex items-center justify-center mt-4 hover:bg-gray-100">
             <FcGoogle className="mr-2" size={24} />
             Sign in with Google
           </Button>
 
-          {/* Sign Up Link */}
           <div className="text-sm text-gray-600 text-center mt-4">
             Don't have an account?{" "}
             <Link to="/signup" className="text-blue-600 hover:underline">

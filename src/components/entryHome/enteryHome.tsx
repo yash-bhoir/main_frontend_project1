@@ -17,7 +17,6 @@ const EntryHome = () => {
             <Routes>
               <Route path="/signin" element={<Signin />} />
               <Route path="/signup" element={<SignUp />} />
-              {/* <Route path="/forgot-password" element={<ForgotPassword />} /> */}
               <Route path="/" element={<Navigate to="/signin" />} />
             </Routes>
           </div>

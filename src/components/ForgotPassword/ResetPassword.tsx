@@ -10,14 +10,19 @@ import { Input } from "../ui/input";
 import { Label } from "@radix-ui/react-label";
 import { Button } from "../ui/button";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-const ResetPassword = ({ userId }) => {
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+// Define the props type
+interface ResetPasswordProps {
+  userId: string; // Specify the type for userId
+}
+
+const ResetPassword: React.FC<ResetPasswordProps> = ({ userId }) => {
+  const [newPassword, setNewPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
   const navigate = useNavigate();
 
-  console.log (" this is prop userid ::", userId)
+  console.log("This is prop userId in ResetPassword::", userId);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,9 +63,7 @@ const ResetPassword = ({ userId }) => {
     <Card className="mx-auto max-w-sm">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
-        <CardDescription>
-          Enter your new password
-        </CardDescription>
+        <CardDescription>Enter your new password</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -94,6 +97,12 @@ const ResetPassword = ({ userId }) => {
           <Button type="submit" className="w-full" onClick={handleResetPassword}>
             Reset Password
           </Button>
+          <div className="text-sm text-gray-600 text-center mt-4">
+            Back to{" "}
+            <Link to="/signin" className="text-blue-600 hover:underline">
+              Sign In
+            </Link>
+          </div>
         </div>
       </CardContent>
     </Card>

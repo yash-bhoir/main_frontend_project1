@@ -12,7 +12,7 @@ const NotFound: React.FC = () => {
     }, 1000);
 
     const timeout = setTimeout(() => {
-      navigate('/home');
+      navigate('/');
     }, 3000);
 
     return () => {
