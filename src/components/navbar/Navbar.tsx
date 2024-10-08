@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
 import {
-  MoonIcon,
-  SunIcon,
-  UserIcon,
   HomeIcon,
   InformationCircleIcon,
   BellIcon,
+  UserIcon,
+  Bars3Icon,
+  ChartBarIcon,
+  PhoneIcon,
 } from "@heroicons/react/24/outline";
 import {
   DropdownMenu,
@@ -15,98 +15,173 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 
-const Navbar: React.FC = () => {
-  const [darkMode, setDarkMode] = useState(false); // State for dark mode
+interface NavbarProps {
+  onSelect: (component: string) => void; // Prop for selecting components
+}
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
+const Navbar: React.FC<NavbarProps> = ({ onSelect }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleSelect = (component: string) => {
+    onSelect(component);
+    setMenuOpen(false); 
   };
 
   return (
-    <nav
-      className={`shadow-lg transition-colors duration-300 ${
-        darkMode ? "bg-[#222629]" : "bg-[#F9FAFB]"
-      } rounded-lg`}
-    >
-      <div className="max-w-screen-md mx-auto px-4 py-4 flex items-center justify-between">
-        {/* Logo */}
-        <div className="text-2xl font-bold text-[#86C232]">
-          My Website
+    <nav className="bg-[white] shadow-xl rounded-3xl mx-auto max-w-4xl mt-5">
+      <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="text-xl font-bold text-[#ff4d00] flex-shrink-0">
+        DRONO PHAETON
         </div>
 
-        {/* Center Navigation Tabs */}
-        <div className="flex-1 flex justify-center space-x-4">
-          <a
-            href="#"
-            className={`flex items-center rounded-md p-2 transition duration-200 ${
-              darkMode ? "text-gray-200" : "text-[#222629]"
-            } hover:text-[#86C232]`}
+        <div className="hidden md:flex flex-1 justify-center space-x-4">
+          <span
+            onClick={() => handleSelect("Home")}
+            className="flex items-center cursor-pointer text-[#222629] hover:text-[#ff4d00] text-sm"
           >
-            <HomeIcon className="h-5 w-5 mr-1" />
-            <span className="text-base">Home</span>
-          </a>
-          <a
-            href="#"
-            className={`flex items-center rounded-md p-2 transition duration-200 ${
-              darkMode ? "text-gray-200" : "text-[#222629]"
-            } hover:text-[#86C232]`}
+            <HomeIcon className="h-4 w-4 mr-1" />
+            <span>Home</span>
+          </span>
+          <span
+            onClick={() => handleSelect("Dashboard")}
+            className="flex items-center cursor-pointer text-[#222629] hover:text-[#ff4d00] text-sm"
           >
-            <span className="text-base">Dashboard</span>
-          </a>
-          <a
-            href="#"
-            className={`flex items-center rounded-md p-2 transition duration-200 ${
-              darkMode ? "text-gray-200" : "text-[#222629]"
-            } hover:text-[#86C232]`}
+            <ChartBarIcon className="h-4 w-4 mr-1" />
+            <span>Dashboard</span>
+          </span>
+          <span
+            onClick={() => handleSelect("About")}
+            className="flex items-center cursor-pointer text-[#222629] hover:text-[#ff4d00] text-sm"
           >
-            <InformationCircleIcon className="h-5 w-5 mr-1" />
-            <span className="text-base">About Us</span>
-          </a>
-          <a
-            href="#"
-            className={`flex items-center rounded-md p-2 transition duration-200 ${
-              darkMode ? "text-gray-200" : "text-[#222629]"
-            } hover:text-[#86C232]`}
+            <InformationCircleIcon className="h-4 w-4 mr-1" />
+            <span>About Us</span>
+          </span>
+          <span
+            onClick={() => handleSelect("Contact")}
+            className="flex items-center cursor-pointer text-[#222629] hover:text-[#ff4d00] text-sm"
           >
-            <span className="text-base">Contact</span>
-          </a>
-        </div>
+            <PhoneIcon className="h-4 w-4 mr-1" />
+            <span>Contact</span>
+          </span>
 
-        {/* Right Icons */}
-        <div className="flex items-center space-x-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button className="text-[#222629] hover:text-[#86C232] transition duration-200 rounded-md flex items-center">
-                User
-              </Button>
+              <div className="flex items-center text-[#222629] hover:text-[#ff4d00] transition duration-200 cursor-pointer">
+                <UserIcon className="h-4 w-4 mr-1" />
+                <span>User</span>
+              </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-white dark:bg-[#474B4F] rounded-lg">
-              <DropdownMenuItem className="text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                Profile
+            <DropdownMenuContent className="bg-white rounded-lg">
+              <DropdownMenuItem
+                onClick={() => handleSelect("AddInfo")}
+                className="text-gray-600 hover:bg-gray-100"
+              >
+                My Profile
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                Settings
+              <DropdownMenuItem
+                onClick={() => handleSelect("Notification")}
+                className="text-gray-600 hover:bg-gray-100"
+              >
+                Notifications
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+              <DropdownMenuItem className="text-gray-600 hover:bg-gray-100">
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <button className="text-[#222629] hover:text-[#86C232] transition duration-200 rounded-md p-2">
+        </div>
+
+        <div className="flex items-center space-x-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="text-[#eaeaea] hover:text-[#ff4d00] transition duration-200 rounded-md p-1 bg-[#161819] hover:bg-[#333739]">
+                <UserIcon className="h-5 w-5" />
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-white rounded-lg">
+              <DropdownMenuItem className="text-gray-600 hover:bg-gray-100">
+                Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-gray-600 hover:bg-gray-100">
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-gray-600 hover:bg-gray-100">
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <button className="text-[#eaeaea] hover:text-[#ff4d00] transition duration-200 rounded-md p-1 bg-[#161819] hover:bg-[#333739]">
             <BellIcon className="h-5 w-5" />
           </button>
+
           <button
-            onClick={toggleDarkMode}
-            className="text-[#222629] hover:text-[#86C232] transition duration-200 rounded-md p-2"
+            className="md:hidden text-[#eaeaea] hover:text-[#ff4d00] transition duration-200 rounded-md p-1"
+            onClick={() => setMenuOpen(!menuOpen)}
           >
-            {darkMode ? (
-              <SunIcon className="h-6 w-6 text-[#86C232]" />
-            ) : (
-              <MoonIcon className="h-6 w-6 text-[#474B4F]" />
-            )}
+            <Bars3Icon className="h-5 w-5" />
           </button>
         </div>
       </div>
+
+      {menuOpen && (
+        <div className="md:hidden bg-[#F9FAFB] py-4 px-6 space-y-4 shadow-lg">
+          <span
+            onClick={() => handleSelect("Home")}
+            className="flex items-center cursor-pointer text-[#222629] hover:text-[#ff4d00] text-sm"
+          >
+            <HomeIcon className="h-4 w-4 mr-2" />
+            <span>Home</span>
+          </span>
+          <span
+            onClick={() => handleSelect("Dashboard")}
+            className="flex items-center cursor-pointer text-[#222629] hover:text-[#ff4d00] text-sm"
+          >
+            <ChartBarIcon className="h-4 w-4 mr-2" />
+            <span>Dashboard</span>
+          </span>
+          <span
+            onClick={() => handleSelect("About")}
+            className="flex items-center cursor-pointer text-[#222629] hover:text-[#ff4d00] text-sm"
+          >
+            <InformationCircleIcon className="h-4 w-4 mr-2" />
+            <span>About Us</span>
+          </span>
+          <span
+            onClick={() => handleSelect("Contact")}
+            className="flex items-center cursor-pointer text-[#222629] hover:text-[#ff4d00] text-sm"
+          >
+            <PhoneIcon className="h-4 w-4 mr-2" />
+            <span>Contact</span>
+          </span>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center text-[#222629] hover:text-[#ff4d00] transition duration-200 cursor-pointer">
+                <UserIcon className="h-4 w-4 mr-2" />
+                <span>User</span>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-white rounded-lg">
+              <DropdownMenuItem
+                onClick={() => handleSelect("AddInfo")}
+                className="text-gray-600 hover:bg-gray-100"
+              >
+                My Profile
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleSelect("Notification")}
+                className="text-gray-600 hover:bg-gray-100"
+              >
+                Notifications
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-gray-600 hover:bg-gray-100">
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
     </nav>
   );
 };
