@@ -3,7 +3,7 @@ import SignUp from "./signup";
 
 const MainSignup = () => {
   return (
-    <div className="flex flex-col lg:flex-row h-auto mx-auto">
+    <div className="flex flex-col lg:flex-row h-screen mx-auto">
       <div className="hidden lg:flex lg:flex-1 white items-center justify-center p-4">
         <CarouselDemo />
       </div>

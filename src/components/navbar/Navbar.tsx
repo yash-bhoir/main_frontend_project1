@@ -15,6 +15,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 
+import logo from "../../assets/logo.png";
 interface NavbarProps {
   onSelect: (component: string) => void; // Prop for selecting components
 }
@@ -24,41 +25,41 @@ const Navbar: React.FC<NavbarProps> = ({ onSelect }) => {
 
   const handleSelect = (component: string) => {
     onSelect(component);
-    setMenuOpen(false); 
+    setMenuOpen(false);
   };
 
   return (
-    <nav className="bg-[white] shadow-xl rounded-3xl mx-auto max-w-4xl mt-5">
+    <nav className="bg-[black] rounded-t-xl mx-auto">
       <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="text-xl font-bold text-[#ff4d00] flex-shrink-0">
-        DRONO PHAETON
+      <div className="flex-shrink-0">
+          <img src={logo} alt="Drono Phaeton Logo" className="h-10 w-auto" />
         </div>
 
-        <div className="hidden md:flex flex-1 justify-center space-x-4">
+        <div className="hidden md:flex flex-1 justify-center space-x-8">
           <span
             onClick={() => handleSelect("Home")}
-            className="flex items-center cursor-pointer text-[#222629] hover:text-[#ff4d00] text-sm"
+            className="flex items-center cursor-pointer text-[white] hover:text-[#ff4d00] text-sm"
           >
             <HomeIcon className="h-4 w-4 mr-1" />
             <span>Home</span>
           </span>
           <span
             onClick={() => handleSelect("Dashboard")}
-            className="flex items-center cursor-pointer text-[#222629] hover:text-[#ff4d00] text-sm"
+            className="flex items-center cursor-pointer text-[white] hover:text-[#ff4d00] text-sm"
           >
             <ChartBarIcon className="h-4 w-4 mr-1" />
             <span>Dashboard</span>
           </span>
           <span
             onClick={() => handleSelect("About")}
-            className="flex items-center cursor-pointer text-[#222629] hover:text-[#ff4d00] text-sm"
+            className="flex items-center cursor-pointer text-[white] hover:text-[#ff4d00] text-sm"
           >
             <InformationCircleIcon className="h-4 w-4 mr-1" />
             <span>About Us</span>
           </span>
           <span
             onClick={() => handleSelect("Contact")}
-            className="flex items-center cursor-pointer text-[#222629] hover:text-[#ff4d00] text-sm"
+            className="flex items-center cursor-pointer text-[white] hover:text-[#ff4d00] text-sm"
           >
             <PhoneIcon className="h-4 w-4 mr-1" />
             <span>Contact</span>
@@ -66,7 +67,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSelect }) => {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="flex items-center text-[#222629] hover:text-[#ff4d00] transition duration-200 cursor-pointer">
+              <div className="flex items-center text-[white] hover:text-[#ff4d00] transition duration-200 cursor-pointer">
                 <UserIcon className="h-4 w-4 mr-1" />
                 <span>User</span>
               </div>
