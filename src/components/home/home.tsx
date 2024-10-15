@@ -36,17 +36,14 @@ const Home = () => {
   };
 
   return (
-    <div className="bg-[white]">
-      <div className="bg-[white] w-auto h-auto rounded-xl shadow-lg m-6">
-      <div className="border-b border-white">
-
+    <div className="bg-[white] px-4 h-[auto]">
+      <div className="border-b border-white mt-3">
         <Navbar onSelect={setSelectedComponent} />
         </div>
-        <main className=" mx-auto max-w-screen-xl px-4 bg-black">
+        <main className="">
           {renderComponent()}
         </main>
       </div>
-    </div>
   );
 };
 
