@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import logo from "../../assets/logo.png";
+import { ModeToggle } from "../mode-toggle";
 interface NavbarProps {
   onSelect: (component: string) => void; // Prop for selecting components
 }
@@ -73,20 +74,29 @@ const Navbar: React.FC<NavbarProps> = ({ onSelect }) => {
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-white rounded-lg">
-              <DropdownMenuItem
+            <DropdownMenuItem
                 onClick={() => handleSelect("AddInfo")}
                 className="text-gray-600 hover:bg-gray-100"
               >
-                My Profile
+                Add Information
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleSelect("Notification")}
                 className="text-gray-600 hover:bg-gray-100"
               >
-                Notifications
+                Request Blood
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-gray-600 hover:bg-gray-100">
-                Logout
+              <DropdownMenuItem
+                onClick={() => handleSelect("Notification")}
+                className="text-gray-600 hover:bg-gray-100"
+              >
+                Donate Blood
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleSelect("Notification")}
+                className="text-gray-600 hover:bg-gray-100"
+              >
+                Request Status
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -121,6 +131,9 @@ const Navbar: React.FC<NavbarProps> = ({ onSelect }) => {
             onClick={() => setMenuOpen(!menuOpen)}
           >
             <Bars3Icon className="h-5 w-5" />
+          </button>
+          <button className="text-[#eaeaea] hover:text-[#ff4d00] transition duration-200 rounded-md p-1 bg-[#161819] hover:bg-[#333739]" >
+          <ModeToggle/>
           </button>
         </div>
       </div>
@@ -168,16 +181,25 @@ const Navbar: React.FC<NavbarProps> = ({ onSelect }) => {
                 onClick={() => handleSelect("AddInfo")}
                 className="text-gray-600 hover:bg-gray-100"
               >
-                My Profile
+                Add Information
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleSelect("Notification")}
                 className="text-gray-600 hover:bg-gray-100"
               >
-                Notifications
+                Request Blood
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-gray-600 hover:bg-gray-100">
-                Logout
+              <DropdownMenuItem
+                onClick={() => handleSelect("Notification")}
+                className="text-gray-600 hover:bg-gray-100"
+              >
+                Donate Blood
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleSelect("Notification")}
+                className="text-gray-600 hover:bg-gray-100"
+              >
+                Request Status
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

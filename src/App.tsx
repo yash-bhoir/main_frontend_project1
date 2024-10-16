@@ -14,10 +14,12 @@ import ProtectedLayout from './utility/ProtectedRoute';
 import NotFound from './utility/NotFound';
 import MainSignup from './components/signup/mainSignup';
 import MainSignin from './components/signin/mainSignin';
+import { ThemeProvider } from './components/theme-provider';
 
 
 function App() {
   return (
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
     <Routes>
       <Route path="/signin" element={<MainSignin/>} />
       <Route path="/signup" element={<MainSignup />} />
@@ -43,6 +45,7 @@ function App() {
       <Route path="*" element={<Navigate to="/notFound" />} />
 
     </Routes>
+    </ThemeProvider>
   );
 }
 
