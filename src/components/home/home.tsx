@@ -24,7 +24,7 @@ const Home = () => {
         return <Contact />;
       case "AddInfo":
         return <AddInfo />;
-      case "BloodRequest":
+      case "RequestBlood":
         return <BloodRequest />;
       case "RequestStatus":
         return <RequestStatus />;
