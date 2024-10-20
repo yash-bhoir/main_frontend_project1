@@ -19,7 +19,7 @@ import { ThemeProvider } from './components/theme-provider';
 
 function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    // <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
     <Routes>
       <Route path="/signin" element={<MainSignin/>} />
       <Route path="/signup" element={<MainSignup />} />
@@ -45,7 +45,7 @@ function App() {
       <Route path="*" element={<Navigate to="/notFound" />} />
 
     </Routes>
-    </ThemeProvider>
+    // </ThemeProvider>
   );
 }
 

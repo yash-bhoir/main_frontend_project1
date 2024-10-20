@@ -1,302 +1,457 @@
-import * as React from "react"
-import { format } from "date-fns"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { useEffect, useState } from "react";
+import { toast, ToastContainer } from "react-toastify";
+import { z } from "zod";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import "react-toastify/dist/ReactToastify.css";
+import decryptToken from "@/utility/decryptToken";
 
-import { cn } from "@/lib/utils"
-import { Calendar } from "@/components/ui/calendar"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+const bloodType = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
-import { useForm } from 'react-hook-form';
-import { Button } from '../ui/button';
-import { Textarea } from '../ui/textarea';
-import { Input } from '../ui/input';
-import { Form } from '../ui/form';
-import { Label } from '../ui/label';
-import { Card } from '../ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from '@/hooks/use-toast';
-import { Checkbox } from "@/components/ui/checkbox"; // Import your Checkbox component
-
-const FormSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  bloodGroup: z.string().min(1, 'Blood group is required'),
-  birthDate: z.date().refine(date => date < new Date(), 'Birth date must be in the past'),
-  gender: z.string().min(1, 'Gender is required'),
-  phoneNumber: z.string().min(1, 'Phone number is required'),
-  streetAddress: z.string().min(1, 'Street address is required'),
-  city: z.string().min(1, 'City is required'),
+const formSchema = z.object({
+  firstName: z.string().min(1, "First Name is required"),
+  lastName: z.string().min(1, "Last Name is required"),
+  bloodType: z.string().min(1, "Blood Group is required"),
+  birthDate: z.string().min(1, "Birth Date is required"),
+  gender: z.enum(["Male", "Female", "Other"], {
+    required_error: "Gender is required",
+  }),
+  phoneNumber: z.string().regex(/^\d+$/, "Phone Number must be numeric"),
+  streetAddress: z.string().min(1, "Street Address is required"),
+  city: z.string().min(1, "City is required"),
   state: z.string().optional(),
-  postalCode: z.string().min(1, 'Postal code is required'),
-  weight: z.number().positive('Weight must be a positive number'),
+  postalCode: z.string().min(1, "Postal Code is required"),
+  weight: z.number().min(1, "Weight must be greater than 0"),
   donatedPreviously: z.boolean().optional(),
-  lastDonation: z.date().optional(),
+  lastDonation: z.string().optional(),
   diseases: z.string().optional(),
+  id: z.string().optional(), // Adding id field to the schema
 });
 
-interface FormData {
-  firstName: string;
-  lastName: string;
-  bloodGroup: string;
-  birthDate: Date;
-  gender: string;
-  phoneNumber: string;
-  streetAddress: string;
-  city: string;
-  state?: string;
-  postalCode: string;
-  weight: number;
-  donatedPreviously?: boolean;
-  lastDonation?: Date;
-  diseases?: string;
-}
+type FormData = z.infer<typeof formSchema>;
 
-const AddInfo: React.FC = () => {
-  const [date, setDate] = React.useState<Date>()
-
-  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
-    resolver: zodResolver(FormSchema),
+const AddInfo = () => {
+  const [formData, setFormData] = useState<FormData>({
+    firstName: "",
+    lastName: "",
+    bloodType: "",
+    birthDate: "",
+    gender: "Male",
+    phoneNumber: "",
+    streetAddress: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    weight: 0,
+    donatedPreviously: false,
+    lastDonation: "",
+    diseases: "",
+    id: "", // Initial state for id
   });
 
-  const onSubmit = (data: FormData) => {
-    console.log(data);
-    toast({
-      title: 'Form Submitted',
-      description: JSON.stringify(data, null, 2),
+  const [errors, setErrors] = useState<z.ZodError<FormData> | null>(null);
+  const [userId, setUserId] = useState<string>();
+  const [userFormStatus, setUserFormStatus] = useState<string>("");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const userInfo = decryptToken();
+      const decodedUserId = userInfo?._id;
+
+      if (decodedUserId) {
+        setUserId(decodedUserId);
+        await checkUserStatus(decodedUserId);
+      } else {
+        toast.error("User ID is not available. Please try again.");
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const checkUserStatus = async (userId: string) => {
+    const response = await fetch(
+      "http://localhost:5173/api/v1/users/user-status",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (data.data.isFilled) {
+      setUserFormStatus("Update");
+      await updateData(userId);
+    } else {
+      setUserFormStatus("Add");
+    }
+  };
+
+  const updateData = async (userId: string) => {
+    try {
+      const response = await fetch(
+        `http://localhost:5173/api/v1/UserInfo/user-info/getInfo`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        setFormData({
+          firstName: data.data.firstName || "",
+          lastName: data.data.lastName || "",
+          bloodType: data.data.bloodType || "",
+          birthDate: data.data.Birth_Date
+            ? new Date(data.data.Birth_Date).toISOString().split("T")[0]
+            : "",
+          gender: data.data.Gender || "Male",
+          phoneNumber: data.data.Phone_Number || "",
+          streetAddress: data.data.Street_Address || "",
+          city: data.data.City || "",
+          state: data.data.State || "",
+          postalCode: data.data.Postal_Code || "",
+          weight: data.data.Weight || 0,
+          donatedPreviously: data.data.donated_previously || false,
+          lastDonation: data.data.Last_donation
+            ? new Date(data.data.Last_donation).toISOString().split("T")[0]
+            : "",
+          diseases: data.data.Diseases || "",
+          id: data.data.id || "", // Set the id field from the response
+        });
+      } else {
+        toast.error("Failed to fetch user info");
+      }
+    } catch (error) {
+      toast.error("An error occurred while fetching user info");
+    }
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+
+    if (name === "weight") {
+      setFormData({ ...formData, [name]: Number(value) });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData({ ...formData, [name]: checked });
+  };
+
+  const handleBloodGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFormData({ ...formData, bloodType: e.target.value });
+  };
+
+  const handleDateChange = (date: Date | null, field: keyof FormData) => {
+    setFormData({
+      ...formData,
+      [field]: date ? date.toISOString().split("T")[0] : "",
     });
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const validation = formSchema.safeParse(formData);
+    if (!validation.success) {
+      setErrors(validation.error);
+    } else {
+      setErrors(null);
+
+      const dataToSubmit =
+        userFormStatus === "Add" ? { ...formData, userId } : { ...formData }; // Don't include userId when updating
+
+      const url =
+        userFormStatus === "Add"
+          ? "http://localhost:5173/api/v1/UserInfo/user-info"
+          : "http://localhost:5173/api/v1/UserInfo/user-info/edit";
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataToSubmit),
+      })
+        .then((response) => {
+          if (response.ok) {
+            toast.success(
+              `User info ${userFormStatus.toLowerCase()}ed successfully`
+            );
+          } else {
+            throw new Error("Failed to submit the form");
+          }
+        })
+        .catch(() => {
+          toast.error("An error occurred. Please try again.");
+        });
+    }
+  };
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-black">
-      <Card title="Add Information" className='px-5 w-[850px] mt-6 mb-6'>
-        <Form onSubmit={handleSubmit(onSubmit)} className="space-y-6 ">
-
-          <div className="flex space-x-4 mt-8">
-            <div className="flex-1">
-              <Label htmlFor="firstName">First Name*</Label>
-              <Input
-                id="firstName"
-                {...register('firstName')}
-                className="mt-1"
-              />
-              {errors.firstName && <span className="text-red-500">{errors.firstName.message}</span>}
-            </div>
-            <div className="flex-1 ">
-              <Label htmlFor="lastName">Last Name*</Label>
-              <Input
-                id="lastName"
-                {...register('lastName')}
-                className="mt-1"
-              />
-              {errors.lastName && <span className="text-red-500">{errors.lastName.message}</span>}
-            </div>
+    <div className="flex flex-col items-center justify-center p-8 bg-black text-white">
+      <ToastContainer />
+      <div className="w-full md:w-1/2 p-8 bg-gray-900 rounded-xl shadow-lg">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex space-x-4">
+            <input
+              type="text"
+              name="firstName"
+              placeholder="First Name"
+              value={formData.firstName}
+              onChange={handleChange}
+              className={`w-1/2 p-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                errors?.formErrors?.fieldErrors.firstName
+                  ? "border border-red-500"
+                  : ""
+              }`}
+            />
+            {errors?.formErrors?.fieldErrors.firstName && (
+              <span className="text-red-500">
+                {errors.formErrors.fieldErrors.firstName}
+              </span>
+            )}
+            <input
+              type="text"
+              name="lastName"
+              placeholder="Last Name"
+              value={formData.lastName}
+              onChange={handleChange}
+              className={`w-1/2 p-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                errors?.formErrors?.fieldErrors.lastName
+                  ? "border border-red-500"
+                  : ""
+              }`}
+            />
+            {errors?.formErrors?.fieldErrors.lastName && (
+              <span className="text-red-500">
+                {errors.formErrors.fieldErrors.lastName}
+              </span>
+            )}
           </div>
 
-          {/* Blood Group and Birth Date in one row */}
-          <div className="flex space-x-4 mt-5">
-            <div className="flex-1">
-              <Label htmlFor="bloodGroup">Blood Group*</Label>
-              <Select
-                onValueChange={(value) => register('bloodGroup').onChange(value)}
-                defaultValue=""
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Blood Group" />
-                </SelectTrigger>
-                <SelectContent>
-                  {['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map(group => (
-                    <SelectItem key={group} value={group}>{group}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.bloodGroup && <span className="text-red-500">{errors.bloodGroup.message}</span>}
-            </div>
+          <select
+            name="bloodType"
+            value={formData.bloodType}
+            onChange={handleBloodGroupChange}
+            className={`w-full p-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+              errors?.formErrors?.fieldErrors.bloodType
+                ? "border border-red-500"
+                : ""
+            }`}
+          >
+            <option value="" disabled>
+              Select Blood Group
+            </option>
+            {bloodType.map((group) => (
+              <option key={group} value={group}>
+                {group}
+              </option>
+            ))}
+          </select>
+          {errors?.formErrors?.fieldErrors.bloodType && (
+            <span className="text-red-500">
+              {errors.formErrors.fieldErrors.bloodType}
+            </span>
+          )}
 
-            <div className="flex-1 mt-6">
-            <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-[280px] justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Birth Date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              {errors.birthDate && <span className="text-red-500">{errors.birthDate.message}</span>}
-            </div>
+          <label className="block">Birth Date</label>
+          <DatePicker
+            selected={formData.birthDate ? new Date(formData.birthDate) : null}
+            onChange={(date) => handleDateChange(date, "birthDate")}
+            className={`w-full p-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+              errors?.formErrors?.fieldErrors.birthDate
+                ? "border border-red-500"
+                : ""
+            }`}
+            placeholderText="Select Birth Date"
+            dateFormat="yyyy-MM-dd"
+          />
+          {errors?.formErrors?.fieldErrors.birthDate && (
+            <span className="text-red-500">
+              {errors.formErrors.fieldErrors.birthDate}
+            </span>
+          )}
+
+          <div className="flex space-x-4">
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              className={`w-1/2 p-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                errors?.formErrors?.fieldErrors.gender
+                  ? "border border-red-500"
+                  : ""
+              }`}
+            >
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+            {errors?.formErrors?.fieldErrors.gender && (
+              <span className="text-red-500">
+                {errors.formErrors.fieldErrors.gender}
+              </span>
+            )}
+
+            <input
+              type="text"
+              name="phoneNumber"
+              placeholder="Phone Number"
+              value={formData.phoneNumber}
+              onChange={handleChange}
+              className={`w-1/2 p-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                errors?.formErrors?.fieldErrors.phoneNumber
+                  ? "border border-red-500"
+                  : ""
+              }`}
+            />
+            {errors?.formErrors?.fieldErrors.phoneNumber && (
+              <span className="text-red-500">
+                {errors.formErrors.fieldErrors.phoneNumber}
+              </span>
+            )}
           </div>
 
-          {/* Gender and Phone Number in one row */}
-          <div className="flex space-x-4 mt-5">
-            <div className="flex-1">
-              <Label htmlFor="gender">Gender*</Label>
-              <Select
-                onValueChange={(value) => register('gender').onChange(value)}
-                defaultValue=""
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Gender" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Male">Male</SelectItem>
-                  <SelectItem value="Female">Female</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.gender && <span className="text-red-500">{errors.gender.message}</span>}
-            </div>
+          <input
+            type="text"
+            name="streetAddress"
+            placeholder="Street Address"
+            value={formData.streetAddress}
+            onChange={handleChange}
+            className={`w-full p-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+              errors?.formErrors?.fieldErrors.streetAddress
+                ? "border border-red-500"
+                : ""
+            }`}
+          />
+          {errors?.formErrors?.fieldErrors.streetAddress && (
+            <span className="text-red-500">
+              {errors.formErrors.fieldErrors.streetAddress}
+            </span>
+          )}
 
-            <div className="flex-1">
-              <Label htmlFor="phoneNumber">Phone Number*</Label>
-              <Input
-                id="phoneNumber"
-                {...register('phoneNumber')}
-                className="mt-1"
-              />
-              {errors.phoneNumber && <span className="text-red-500">{errors.phoneNumber.message}</span>}
-            </div>
+          <div className="flex space-x-4">
+            <input
+              type="text"
+              name="city"
+              placeholder="City"
+              value={formData.city}
+              onChange={handleChange}
+              className={`w-1/2 p-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+                errors?.formErrors?.fieldErrors.city
+                  ? "border border-red-500"
+                  : ""
+              }`}
+            />
+            {errors?.formErrors?.fieldErrors.city && (
+              <span className="text-red-500">
+                {errors.formErrors.fieldErrors.city}
+              </span>
+            )}
+
+            <input
+              type="text"
+              name="state"
+              placeholder="State"
+              value={formData.state}
+              onChange={handleChange}
+              className={`w-1/2 p-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400`}
+            />
           </div>
 
-          {/* Street Address and City in one row */}
-          <div className="flex space-x-4 mt-5">
-            <div className="flex-1">
-              <Label htmlFor="streetAddress">Street Address*</Label>
-              <Input
-                id="streetAddress"
-                {...register('streetAddress')}
-                className="mt-1"
-              />
-              {errors.streetAddress && <span className="text-red-500">{errors.streetAddress.message}</span>}
-            </div>
+          <input
+            type="text"
+            name="postalCode"
+            placeholder="Postal Code"
+            value={formData.postalCode}
+            onChange={handleChange}
+            className={`w-full p-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+              errors?.formErrors?.fieldErrors.postalCode
+                ? "border border-red-500"
+                : ""
+            }`}
+          />
+          {errors?.formErrors?.fieldErrors.postalCode && (
+            <span className="text-red-500">
+              {errors.formErrors.fieldErrors.postalCode}
+            </span>
+          )}
 
-            <div className="flex-1">
-              <Label htmlFor="city">City*</Label>
-              <Input
-                id="city"
-                {...register('city')}
-                className="mt-1"
-              />
-              {errors.city && <span className="text-red-500">{errors.city.message}</span>}
-            </div>
+          <input
+            type="number"
+            name="weight"
+            placeholder="Weight (kg)"
+            value={formData.weight}
+            onChange={handleChange}
+            className={`w-full p-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 ${
+              errors?.formErrors?.fieldErrors.weight
+                ? "border border-red-500"
+                : ""
+            }`}
+          />
+          {errors?.formErrors?.fieldErrors.weight && (
+            <span className="text-red-500">
+              {errors.formErrors.fieldErrors.weight}
+            </span>
+          )}
+
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              name="donatedPreviously"
+              checked={formData.donatedPreviously}
+              onChange={handleCheckboxChange}
+              className="mr-2"
+            />
+            <label>Previously Donated?</label>
           </div>
 
-          {/* State and Postal Code in one row */}
-          <div className="flex space-x-4 mt-5">
-            <div className="flex-1">
-              <Label htmlFor="state">State</Label>
-              <Input
-                id="state"
-                {...register('state')}
-                className="mt-1"
+          {formData.donatedPreviously && (
+            <>
+              <label className="block">Last Donation Date</label>
+              <DatePicker
+                selected={
+                  formData.lastDonation ? new Date(formData.lastDonation) : null
+                }
+                onChange={(date) => handleDateChange(date, "lastDonation")}
+                className={`w-full p-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400`}
+                placeholderText="Select Last Donation Date"
+                dateFormat="yyyy-MM-dd"
               />
-            </div>
+            </>
+          )}
 
-            <div className="flex-1">
-              <Label htmlFor="postalCode">Postal Code*</Label>
-              <Input
-                id="postalCode"
-                {...register('postalCode')}
-                className="mt-1"
-              />
-              {errors.postalCode && <span className="text-red-500">{errors.postalCode.message}</span>}
-            </div>
-          </div>
+          <textarea
+            name="diseases"
+            placeholder="Any diseases (optional)"
+            value={formData.diseases}
+            onChange={handleChange}
+            className="w-full p-3 bg-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
 
-          {/* Weight and Donated Previously in one row */}
-          <div className="flex space-x-4 mt-5 ">
-            <div className="flex-1">
-              <Label htmlFor="weight">Weight (kg)*</Label>
-              <Input
-                id="weight"
-                type="number"
-                {...register('weight')}
-                className="mt-1"
-              />
-              {errors.weight && <span className="text-red-500">{errors.weight.message}</span>}
-            </div>
-
-            {/* CheckboxWithText for terms and conditions */}
-            <div className="items-top flex space-x-2 mt-5">
-              <Checkbox id="terms1" />
-              <div className="grid gap-1.5 leading-none">
-                <label
-                  htmlFor="terms1"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Donated Previously:
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Last Donation and Diseases in one row */}
-          <div className="flex space-x-4 mt-5">
-            <div className="flex-1 mt-6">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-[280px] justify-start text-left font-normal",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Last Donation</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={setDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            <div className="flex-1">
-              <Label htmlFor="diseases">Diseases</Label>
-              <Textarea
-                id="diseases"
-                {...register('diseases')}
-                className="mt-1"
-              />
-            </div>
-          </div>
-          <div className="flex justify-center">
-            <Button type="submit" className="w-[200px] mt-4 mb-4">
-              Submit
-            </Button>
-          </div>
-        </Form>
-      </Card>
+          <button
+            type="submit"
+            className="w-full p-3 bg-blue-600 rounded-lg hover:bg-blue-500 transition duration-200"
+          >
+            {userFormStatus === "Add" ? "Add" : "Update"}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

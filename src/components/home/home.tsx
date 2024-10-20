@@ -8,6 +8,7 @@ import RequestStatus from "../users/requestStatus";
 import Notification from "../notifictaion/notification";
 import { useState } from "react";
 import MainHome from "./mainHome";
+import BloodDonationAppointment from "../users/bloodDonationAppointment";
 
 const Home = () => {
   const [selectedComponent, setSelectedComponent] = useState<string>("Home");
@@ -26,6 +27,8 @@ const Home = () => {
         return <AddInfo />;
       case "BloodRequest":
         return <BloodRequest />;
+        case "BloodDonationAppointment":
+          return <BloodDonationAppointment />;
       case "RequestStatus":
         return <RequestStatus />;
       case "Notification":

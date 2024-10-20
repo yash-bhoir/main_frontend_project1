@@ -81,19 +81,19 @@ const Navbar: React.FC<NavbarProps> = ({ onSelect }) => {
                 Add Information
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleSelect("Notification")}
+                onClick={() => handleSelect("BloodRequest")}
                 className="text-gray-600 hover:bg-gray-100"
               >
                 Request Blood
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleSelect("Notification")}
+                onClick={() => handleSelect("BloodDonationAppointment")}
                 className="text-gray-600 hover:bg-gray-100"
               >
                 Donate Blood
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleSelect("Notification")}
+                onClick={() => handleSelect("RequestStatus")}
                 className="text-gray-600 hover:bg-gray-100"
               >
                 Request Status
@@ -184,13 +184,13 @@ const Navbar: React.FC<NavbarProps> = ({ onSelect }) => {
                 Add Information
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleSelect("Notification")}
+                onClick={() => handleSelect("BloodRequest")}
                 className="text-gray-600 hover:bg-gray-100"
               >
                 Request Blood
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleSelect("Notification")}
+                onClick={() => handleSelect("BloodRequest")}
                 className="text-gray-600 hover:bg-gray-100"
               >
                 Donate Blood
