@@ -22,7 +22,10 @@ const formSchema = z.object({
   state: z.string().optional(),
   postalCode: z.string().min(1, "Postal Code is required"),
   weight: z.number().min(1, "Weight must be greater than 0"),
+  postalCode: z.string().min(1, "Postal Code is required"),
+  weight: z.number().min(1, "Weight must be greater than 0"),
   donatedPreviously: z.boolean().optional(),
+  lastDonation: z.string().optional(),
   lastDonation: z.string().optional(),
   diseases: z.string().optional(),
   id: z.string().optional(), // Adding id field to the schema
