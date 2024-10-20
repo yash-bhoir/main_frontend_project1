@@ -11,12 +11,16 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    'process.env': {}, 
+  },
+  
   server: {
     proxy: {
       '/api': {
         target,
         changeOrigin: true,
-        secure: false, // Set to false if the backend server does not use HTTPS
+        secure: false, 
       },
     },
     port: 5173,

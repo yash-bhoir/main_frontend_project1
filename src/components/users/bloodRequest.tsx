@@ -120,7 +120,6 @@ const BloodRequest: React.FC = () => {
 
       toast.success(data.message || "Request successfully created");
 
-      // Reset form
       setFormData({
         userId: decodedUserId,
         bloodTypeId: "",
@@ -221,7 +220,7 @@ const BloodRequest: React.FC = () => {
             <span className="text-red-500">{errors.request_date}</span>
           )}
 
-<input
+          <input
             type="text"
             name="required_by"
             placeholder="Required By"
@@ -308,7 +307,6 @@ const BloodRequest: React.FC = () => {
             Urgent Request
           </label>
 
-
           <button
             type="submit"
             disabled={loading}
@@ -323,6 +321,5 @@ const BloodRequest: React.FC = () => {
     </div>
   );
 };
-
 
 export default BloodRequest;

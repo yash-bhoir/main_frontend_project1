@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import decryptToken from "@/utility/decryptToken";
 import Modal from "react-modal";
 
 interface Request {
@@ -19,75 +18,102 @@ interface Request {
   isAccepted: boolean | null;
   isQrSent: boolean | null;
   isMailSent: boolean | null;
-  isAproved: boolean | null;
+  isApproved: boolean | null;
+  userId: string;
 }
 
-const RequestStatus: React.FC = () => {
+const UserRequests: React.FC = () => {
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
+  // Fetch all requests on component mount
   useEffect(() => {
-    const fetchRequestStatus = async () => {
+    const fetchRequests = async () => {
       try {
-        const userInfo = decryptToken();
-        const decodedUserId = userInfo?._id || "";
+        const response = await fetch("http://localhost:5173/api/v1/bloodrequest/getAllRequest", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
-        if (!decodedUserId) {
-          toast.error("User not authenticated.");
-          setLoading(false);
-          return;
+        // Check if the response is OK
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to fetch requests.");
         }
-
-        const response = await fetch(
-          "http://localhost:5173/api/v1/bloodrequest/requestStatus",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ userId: decodedUserId }),
-          }
-        );
 
         const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Failed to fetch request status.");
-        }
-
         setRequests(data.data || []);
       } catch (error) {
-        toast.error(
-          error instanceof Error ? error.message : "Error fetching request status."
-        );
+        toast.error(error instanceof Error ? error.message : "Error fetching requests.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRequestStatus();
+    fetchRequests();
   }, []);
 
+  // Handle row click to open modal with selected request details
   const handleRowClick = (request: Request) => {
     setSelectedRequest(request);
     setIsModalOpen(true);
   };
 
-  const getStatusColor = (status: string, isAccepted: boolean | null) => {
-    if (isAccepted === true) return "text-green-500"; // Accepted
-    if (isAccepted === false) return "text-red-500"; // Rejected
-    switch (status) {
-      case "pending":
-        return "text-yellow-500"; // Pending
-      case "completed":
-        return "text-blue-500"; // Completed
-      default:
-        return "text-white"; // Default color for other statuses
+  // Accept or reject the selected request
+  const handleAcceptReject = async (isAccepted: boolean) => {
+    if (!selectedRequest) return;
+
+    try {
+      const response = await fetch("http://localhost:5173/api/v1/acceptRequest/acceptRequest", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          requestId: selectedRequest.id,
+          userId: selectedRequest.userId,
+          isAccepted,
+        }),
+      });
+
+      // Check for response errors
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to process the request.");
+      }
+
+      const updatedStatus = isAccepted ? 'Accepted' : 'Rejected';
+
+      // Show success message and update the requests state
+      toast.success(isAccepted ? "Request accepted successfully!" : "Request rejected.");
+      setRequests((prev) =>
+        prev.map((req) =>
+          req.id === selectedRequest.id ? { ...req, isAccepted, status: updatedStatus } : req
+        )
+      );
+
+      // Close the modal after handling the request
+      setIsModalOpen(false);
+      setSelectedRequest(null); // Clear the selected request
+
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Error processing the request.");
     }
   };
 
+  // Get the status color based on the request status and acceptance
+  const getStatusColor = (status: string, isAccepted: boolean | null) => {
+    if (isAccepted) return "text-green-500";
+    if (status === "Pending") return "text-yellow-500";
+    if (status === "Rejected") return "text-red-500";
+    return "text-white";
+  };
+
+  // Show loading indicator
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
@@ -96,10 +122,14 @@ const RequestStatus: React.FC = () => {
     );
   }
 
-  if (requests.length === 0) {
+  // Filter for pending requests
+  const pendingRequests = requests.filter(request => request.status === "Pending");
+
+  // No pending requests found
+  if (pendingRequests.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
-        <p>No requests found.</p>
+        <p>No pending requests found.</p>
       </div>
     );
   }
@@ -108,7 +138,7 @@ const RequestStatus: React.FC = () => {
     <div className="p-8 bg-black text-white min-h-screen">
       <ToastContainer />
       <div className="container mx-auto">
-        <h2 className="text-3xl font-bold mb-6 text-center">Request Status</h2>
+        <h2 className="text-3xl font-bold mb-6 text-center">Manage Blood Requests</h2>
         <table className="min-w-full bg-gray-800 text-white rounded-lg table-auto border-separate border-spacing-2 border border-gray-700">
           <thead>
             <tr className="bg-gray-700 text-left text-sm font-semibold">
@@ -120,12 +150,10 @@ const RequestStatus: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {requests.map((request, index) => (
+            {pendingRequests.map((request, index) => (
               <tr
                 key={request.id}
-                className={`cursor-pointer hover:bg-gray-600 ${
-                  index % 2 === 0 ? "bg-gray-800" : "bg-gray-700"
-                }`}
+                className={`cursor-pointer hover:bg-gray-600 ${index % 2 === 0 ? "bg-gray-800" : "bg-gray-700"}`}
                 onClick={() => handleRowClick(request)}
               >
                 <td className="py-3 px-4 border border-gray-600">{request.id}</td>
@@ -135,7 +163,7 @@ const RequestStatus: React.FC = () => {
                   {new Date(request.request_date).toLocaleDateString()}
                 </td>
                 <td className={`py-3 px-4 border border-gray-600 ${getStatusColor(request.status, request.isAccepted)}`}>
-                  {request.status}
+                  {request.isAccepted ? "Accepted" : request.status}
                 </td>
               </tr>
             ))}
@@ -143,7 +171,7 @@ const RequestStatus: React.FC = () => {
         </table>
       </div>
 
-      {/* Modal for request details */}
+      {/* Modal for request details and actions */}
       {selectedRequest && (
         <Modal
           isOpen={isModalOpen}
@@ -185,19 +213,24 @@ const RequestStatus: React.FC = () => {
             <div>
               <strong>Accepted:</strong> {selectedRequest.isAccepted ? "Yes" : "No"}
             </div>
-            <div>
-              <strong>QR Sent:</strong> {selectedRequest.isQrSent ? "Yes" : "No"}
-            </div>
-            <div>
-              <strong>Mail Sent:</strong> {selectedRequest.isMailSent ? "Yes" : "No"}
-            </div>
-            <div>
-              <strong>Approved:</strong> {selectedRequest.isAproved ? "Yes" : "No"}
-            </div>
+          </div>
+          <div className="mt-6 flex space-x-4">
+            <button
+              onClick={() => handleAcceptReject(true)}
+              className="bg-green-600 px-4 py-2 rounded-lg text-white w-full"
+            >
+              Accept
+            </button>
+            <button
+              onClick={() => handleAcceptReject(false)}
+              className="bg-red-600 px-4 py-2 rounded-lg text-white w-full"
+            >
+              Reject
+            </button>
           </div>
           <button
             onClick={() => setIsModalOpen(false)}
-            className="mt-6 bg-red-600 px-4 py-2 rounded-lg text-white w-full"
+            className="mt-6 bg-gray-600 px-4 py-2 rounded-lg text-white w-full"
           >
             Close
           </button>
@@ -207,4 +240,4 @@ const RequestStatus: React.FC = () => {
   );
 };
 
-export default RequestStatus;
+export default UserRequests;
